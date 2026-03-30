@@ -1,0 +1,260 @@
+====================================================================================
+University.: Universidad Técnica Nacional
+Campus.....: Pacífico (JRMP)
+Career.....: Ingeniería en Tecnologías de Información
+Period.....: 1C-2026
+Course.....: ITI-721 - Desarrollo de Aplicaciones para Dispositivos Móviles II
+Document...: Class_01.txt
+Goals......: - Validate or install the development environment.
+			 - Create the first React-Native application.
+			 - Apply the some changes over generated code.
+			 - Explain the React-Native goals.			 
+Professor..: Jorge Ruiz (york)
+Student....:
+====================================================================================
+
+Downloads: 
+	Java 17se LTS	https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html
+	Android Studio	https://developer.android.com/studio?gclsrc=ds&gclsrc=ds
+	Node JS			https://nodejs.org/en/
+	Visual Code		https://code.visualstudio.com/docs/?dv=win
+
+Notice:
+All applications required must be defined in the Path environment variable
+
+	
+Step 01 - Tools validation
+
+	- Open the PowerShell as administrator and run the following commands
+
+		java --version	( 17.0.12 2024-07-16 LTS) (maybe could change the version)
+		node --version	(v24.12.0)
+		npm --version	(11.7.0)
+		npx --version	(11.7.0)	
+		
+		yarn --version	(1.22.19) 
+		npm install --global yarn
+		yarn --version	
+		
+		
+	- Visual Code plugins:
+
+		- Open the Extension tab.
+			Babel JavaScript			(Michael McDermott v0.0.40)		
+			React Native Tools			(Microsoft v1.12.2)
+			JavaScript and TypeScript	(Microsoft v5.4.20240120)
+	
+		
+Step 02 - Install global clients (PowerShell as administrator)
+
+	npm install -g expo-cli
+		
+	npm install -g react-native-cli	
+	
+
+Step 03 - Open the Android Device:
+
+	- Android Virtual Device
+	
+		- Only AVD is required, not Android Studio
+	
+		- You can use React (Api 33) AVD or create it if required, 
+		  using Android 13 (Tiramisu) x86-64 Google Apis
+
+		
+	- Android Physical Device:
+	
+		- Remember activate the Developer Options
+
+		- Open Play Store and install Expo Go
+		
+		- Scan the QR code from the Expo CLI Terminal
+
+		- Select Open in Expo Go
+		
+		- Use the USB cable to connect the cell phone with the computer
+
+	
+	- iPhone Physical Device:
+	
+		- Download the Expo Go app from the App Store
+
+		- Sign up for an Expo.dev account
+
+		- Open the Camera app on your iPhone
+
+		- Scan the QR code from the Expo CLI Terminal
+
+		- Select Open in Expo Go
+		
+		- Use the USB cable to connect the cell phone with the computer
+	
+	
+Step 04 - Close the Antivirus (real time scanning) (only if is required)
+	
+	This option is required to avoid the antivirus from affecting 
+	the APK compilation and install process, it normally causes up to 
+	10 minutes of compilation delay.
+
+
+Step 05 - Creates a demo application using Expo
+
+	- Please locate your work folder for the classes of this course.
+
+	- Using the PowerShell (not admin account required)
+	
+		- Locate your work directory and execute:
+		
+			npx create-expo-app@latest demo_01			
+			 
+				Creating an Expo project using the default template.
+
+				To choose from all available templates pass in the --template arg:
+				  $ npx create-expo-app --template
+
+				To choose from all available examples pass in the --example arg:
+				  $ npx create-expo-app --example
+	
+	
+Step 06 - Test the demo application
+
+	- cd demo_01	
+	
+	- npx expo start		
+		
+		Starting project at D:\Documentos\Laboratorios\React-Native\2026\class_01\demo_01
+		Starting Metro Bundler
+		▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+		█ ▄▄▄▄▄ ██▀▀▄▄ ██▄█ ▄▄▄▄▄ █
+		█ █   █ █▀███ ▀▀▄▄█ █   █ █
+		█ █▄▄▄█ █▄▄█▀▀ ▄█▀█ █▄▄▄█ █
+		█▄▄▄▄▄▄▄█▄█ ▀▄█▄█▄█▄▄▄▄▄▄▄█
+		█▄ ███ ▄ ▀ █▄▀ █  ▀██ ▄▀▀██
+		█▄▄▄█▀▄▄█▀▀▄█▀██ ▀█▄▀ ▄█▄ █
+		█▀▀▄ █▄▄▄▄ █▄▄█ ▀▄ ▄▄██▀ ██
+		█ █▄ █▀▄▀█ ▀ ▄█▀ ▀▀▄█▀▄   █
+		█▄█▄▄▄▄▄▄ ▀ ▄▀ ▀  ▄▄▄   ▄▄█
+		█ ▄▄▄▄▄ █ ▄ ▄▀▄▄█ █▄█ ██▀▄█
+		█ █   █ ██ ▄█▄▄█▄▄▄  ▄ ▄  █
+		█ █▄▄▄█ █▀ ▀ ▄█▀█  ▀▀██▄█ █
+		█▄▄▄▄▄▄▄█▄███▄▄▄▄▄▄█▄▄███▄█
+
+		› Metro waiting on exp://10.236.2.142:8081
+		› Scan the QR code above with Expo Go (Android) or the Camera app (iOS)
+
+		› Web is waiting on http://localhost:8081
+
+		› Using Expo Go
+		› Press s │ switch to development build
+
+		› Press a │ open Android
+		› Press w │ open web
+
+		› Press j │ open debugger
+		› Press r │ reload app
+		› Press m │ toggle menu
+		› shift+m │ more tools
+		› Press o │ open project code in your editor
+
+		› Press ? │ show all commands
+
+		Logs for your project will appear below. Press Ctrl+C to exit.
+		Android Bundled 17403ms node_modules\expo-router\entry.js (1250 modules)
+		 (NOBRIDGE) LOG  Bridgeless mode is enabled
+		 INFO
+		 💡 JavaScript logs will be removed from Metro in React Native 0.77! Please use React Native DevTools as your default tool. Tip: Type j in the terminal to open (requires Google Chrome or Microsoft Edge).
+
+
+	- Execute Expo Go app in your cell phone and scan QR-code
+	
+	- Ctrl + C to exit
+
+
+Step 07 - Create the firs application usin expo and blank template
+
+	- npx create-expo-app@latest class_01 --template blank
+	
+	- cd class_01
+	
+	- npx expo install expo-dev-client
+	
+	
+Step 08 - Open your favorite code editor (Visual Code):
+
+	- Open the new project folder (class_01). 
+
+
+Step 09 - Update project
+
+	- In the root project create a new directory call components
+	
+	- Create welcome javaScript file:
+
+		<root_project>/components/welcome.js
+		
+	- Write the next code:
+	
+		import React from 'react';
+		import {StyleSheet, Text, View} from 'react-native';
+
+		const Welcome = () => {
+			return (
+				<View style={styles.Body}>
+					<Text style={styles.Title}>Universidad Técnica Nacional</Text>
+					<Text style={styles.SubTitle}>Introducción a React-Native</Text>
+				</View>
+			);
+		}
+
+		const styles = StyleSheet.create({
+			Body: {
+				alignItems: 'center',
+				justifyContent: 'center',
+				height: '100%',
+			},
+			Title: {
+				fontSize: 22,
+				fontWeight: '600',
+				color: '#12155B',
+			},
+			SubTitle: {
+				fontSize: 18,
+				fontWeight: '500',
+				color: '#000000',
+			},
+		});
+
+		export default Welcome;
+	
+
+	- Save changes
+	
+	
+	- Open <root_project>/App.js
+	
+		- Remove all code
+		
+		- Write the next code:
+		
+			import React from 'react';
+			import { View } from 'react-native';
+			import Welcome from './components/welcome';
+
+			const App = () => {
+				return (
+					<View>
+						<Welcome />
+					</View>
+				);
+			}
+
+			export default App;
+
+		
+		- Save changes
+				
+		
+	- Test the application
+	
+		npm run android		
+	

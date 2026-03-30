@@ -1,0 +1,53 @@
+/* call react libraries */
+import React from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { FontAwesome6 } from '@expo/vector-icons';
+
+/* custom modules */
+import Home from './src/views/home';
+import Details from './src/views/details';
+import About from './src/views/about';
+
+const Tab = createBottomTabNavigator();
+
+function App() {
+  return (
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen
+          name="Home"
+          component={Home}
+          options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: ({color, size}) => (
+              <FontAwesome6 name="house" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Details"
+          component={Details}
+          options={{
+            tabBarLabel: 'Details',
+            tabBarIcon: ({color, size}) => (
+              <FontAwesome6 name="list" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="About"
+          component={About}
+          options={{
+            tabBarLabel: 'About',
+            tabBarIcon: ({color, size}) => (
+              <FontAwesome6 name="question" color={color} size={size} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default App;

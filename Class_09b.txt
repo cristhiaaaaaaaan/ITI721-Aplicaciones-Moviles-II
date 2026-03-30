@@ -1,0 +1,958 @@
+=================================================================================
+University.: Universidad Técnica Nacional
+Campus.....: Pacífico (JRMP)
+Career.....: Ingeniería en Tecnologías de Información
+Period.....: 1C-2026
+Course.....: ITI-721 - Desarrollo de Aplicaciones para Dispositivos Móviles II
+Document...: Class_09b.txt
+Goals......: Connection with webSockets
+Professor..: Jorge Ruiz (york)
+Student....:
+=================================================================================
+
+Notes:
+	This guide is designed for a Linux server; however, you can install Rust on
+	your Windows computer by following the steps outlined at 
+	https://rust-lang.org/tools/install/
+
+
+	How to Setup Rust in VSCode?
+	https://www.geeksforgeeks.org/installation-guide/how-to-setup-rust-in-vscode/
+
+
+Step 01 - Install Ubuntu Server 24.04 LTS
+
+	- 50Gbs of Storage (dynamic growth)
+	- 16Gbs of Main Memory
+	- Network bridget enable.
+	
+	- Install SSH service 
+	
+	
+Step 02 - Update system
+
+	sudo apt update 
+	sudo apt upgrade
+	sudo apt install net-tools
+	
+	
+Step 03	- Memory tune up
+
+	- Check if the swap.img file exists in the root of the operating system.
+	
+		ls / -la
+		
+			Can you see the swap file?
+			
+				:				
+				drwxr-xr-x   2 root root       4096 Aug  5  2025 srv
+			-->	-rw-------   1 root root 4294967296 Mar  9 00:16 swap.img
+				dr-xr-xr-x  13 root root          0 Mar  9 00:20 sys				
+				:
+
+	- If the swap file does not exist, do the following:
+	
+		sudo fallocate -l 4G /swapfile
+		
+		sudo chmod 600 /swapfile
+		
+		sudo mkswap /swapfile
+		
+		sudo swapon /swapfile
+
+		sudo nano /etc/fstab	(add the follwing instruction at the end of file)
+
+			/swapfile none swap sw 0 0
+			
+			
+		- Save changes
+
+
+	- Install zram
+
+		sudo apt install zram-tools -y
+		
+		sudo nano /etc/default/zramswap  (enable the variables and set the new values)
+		
+			ALGO=zstd
+			PERCENT=100
+			PRIORITY=100
+		
+		- Save changes
+		
+		sudo systemctl restart zramswap
+		
+	- Check the virtual memory management and its hierarchy
+	
+		swapon --show
+		
+			NAME       TYPE       SIZE USED PRIO
+			/swap.img  file         4G   0B   -2
+			/dev/zram0 partition 15.6G   0B  100
+		
+
+Step 04	- Install Rust
+
+	sudo apt install build-essential curl git -y
+
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+	
+		- From the options menu, press 1 (standard installation)
+	
+	source $HOME/.cargo/env		(enable the rust environment)
+
+	rustc --version		-->	 rustc 1.94.0 (4a4ef493e 2026-03-02)
+	cargo --version		-->  cargo 1.94.0 (85eff7c80 2026-01-15)
+	
+	
+Step 05 - Create a web page as websocket client	(Windows)
+
+	- Create index.html page into your work directory
+	
+		(remember change the ip address)
+	
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title>Usando webSockets</title>
+			<script type="text/javascript">
+				var ws = new WebSocket('ws://10.236.2.142:5000/');
+
+				ws.onmessage = function(e){
+					document.getElementById('txtConversation').value += e.data+"\n";
+					console.log(e);
+				}
+
+				function conectar(){
+					ws.onopen = function(e){
+						document.getElementById('txtConversation').value = "Conectando al servidor\n";
+						console.log(e);
+
+						ws.send('Un usuario acaba de iniciar sesión...!');
+					}
+				}
+
+				function enviar(){
+					data = [document.getElementById('txtEmisor').value,
+							document.getElementById('txtMessage').value];
+					ws.send(data);
+					document.getElementById('txtMessage').value = '';
+					document.getElementById('txtMessage').focus();
+				}
+
+				function cerrar(){
+					ws.close(1000, "El usuario cerró la sesión");
+				}
+				
+			</script>
+		</head>
+		<body onLoad="conectar()">
+			<table>
+				<tr>
+					<td>
+						<label for="txtEmisor">Emisor:</label>
+						<input type="text" id="txtEmisor" value="Anónimo" required>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="txtMessage">Mensaje:</label><br>
+						<textarea id="txtMessage" cols="110" rows="5" required></textarea>
+					</td>
+					<td><input type="button" id="btnSend" value="Enviar" onClick="enviar()"></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<textarea id="txtConversation" cols="120" rows="20" disabled></textarea>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2"><input type="button" id="btnClose" value="Cerrar" onClick="cerrar()"></td>
+				</tr>
+			</table>
+		</body>
+		</html>
+	
+	
+Step 06 - Create the webSocket application (server in /home/<user>)
+	
+	mkdir apps		
+	cd apps
+			
+	- Create the new application
+	cargo new websocket		
+	
+	cd websocket
+	
+	- Add required libraries
+	cargo add tokio --features full
+	
+	- Add project dependencies
+	nano Cargo.toml
+	
+		[dependencies]
+		tokio = { version = "1.50.0", features = ["full"] }
+		sha1 = "0.10"
+		base64 = "0.22"
+	
+		- Save changes
+	
+	- Changes the main process
+	nano src/main.rs 
+	
+		- Deletes all code and writes the following code:
+		
+		// Import libraries
+		use tokio::net::{TcpListener, TcpStream};
+		use tokio::io::{AsyncReadExt, AsyncWriteExt};
+		use sha1::{Sha1, Digest};
+		use base64::{engine::general_purpose, Engine as _};
+
+		#[tokio::main]
+		async fn main() -> Result<(), Box<dyn std::error::Error>> {
+			let listener = TcpListener::bind("0.0.0.0:5000").await?;
+			println!("Servidor WebSocket escuchando en 0.0.0.0:5000");
+
+			loop {
+				let (socket, _) = listener.accept().await?;
+				tokio::spawn(async move {
+					if let Err(e) = handle_connection(socket).await {
+						eprintln!("Error en la conexión: {}", e);
+					}
+				});
+			}
+		}
+
+		// Create web listener 
+		async fn handle_connection(mut mut_socket: TcpStream) -> Result<(), Box<dyn std::error::Error>> {
+			// 01. Create the websocket buffer
+			let mut buffer = [0; 2048];
+			let n = mut_socket.read(&mut buffer).await?;
+			let request = String::from_utf8_lossy(&buffer[..n]);
+
+
+			// 02. Extract the 'Sec-WebSocket-Key' from the HTTP header
+			if let Some(key) = request.lines()
+				.find(|line| line.starts_with("Sec-WebSocket-Key:"))
+				.map(|line| line.split(':').nth(1).unwrap_or("").trim()){
+				
+				println!("Llave recibida: {}", key);
+
+
+				// 03. The "Magic String" defined in RFC 6455
+				let magic_guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+				let mut hasher = Sha1::new();
+				hasher.update(format!("{}{}", key, magic_guid).as_bytes());
+				
+				
+				// 04. Create the Accept-Key (SHA1 -> Base64)
+				let result = hasher.finalize();
+				let accept_key = general_purpose::STANDARD.encode(result);
+
+
+				// 05. Send Handshake Response
+				let response = format!(
+					"HTTP/1.1 101 Switching Protocols\r\n\
+					 Upgrade: websocket\r\n\
+					 Connection: Upgrade\r\n\
+					 Sec-WebSocket-Accept: {}\r\n\r\n",
+					accept_key
+				);
+
+				mut_socket.write_all(response.as_bytes()).await?;
+				println!("Handshake completado. Conexión establecida.");
+
+				
+				// ===============================================================
+				// This is where the frame parsing begins (OpCodes, Masking, etc.)
+				// ===============================================================
+			}
+
+			Ok(())
+		}
+	
+	- Saves changes
+	
+	
+Step 07 - Run the first time
+
+	- in server (ubuntu)
+	
+		cargo run
+		
+			- you can see the next message:
+			
+				Compiling websocket v0.1.0 (/home/jruiz/apps/websocket)
+					Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.59s                                                                                                                                         
+					 Running `target\debug\websocket.exe`
+				Servidor WebSocket escuchando en 0.0.0.0:5000
+	
+	- in windows 
+	
+		open index.html using a web browser
+		
+	- in server (ubuntu)
+
+		- you can see the new message
+		
+			Llave recibida: uYrRF0rIhPerOU6/9HbLQw==
+			Handshake completado. Conexión establecida.
+
+
+	- stop server
+	
+		ctrl+c
+		
+		
+Step 08 - Changes the main process (add frame parsing)
+
+	nano src/main.rs:
+	
+		- after the following message:
+		
+		// ===============================================================
+        // This is where the frame parsing begins (OpCodes, Masking, etc.)
+        // ===============================================================
+		
+		
+		- writes the next code:
+		
+			loop {
+				let mut header = [0u8; 2];
+				mut_socket.read_exact(&mut header).await?;
+
+				let byte1 = header[0];
+				let byte2 = header[1];
+
+				// 06. Opcode verification (0x1 as text message)
+				let opcode = byte1 & 0x0F;
+				if opcode == 0x8 {
+					println!("El cliente cerró la conexión.");
+					break;
+				}
+
+
+				// 07. Obtains length and check for mask (the most significant bit of byte 2)
+				let masked = (byte2 & 0x80) != 0;
+				let payload_len = (byte2 & 0x7F) as usize;
+
+				if !masked {
+					return Err("El RFC exige que los frames del cliente estén enmascarados".into());
+				}
+
+				// Note: messages > 125 bytes, the RFC specifies reading additional bytes.
+				// Here simplify for short messages.
+				if payload_len == 126 || payload_len == 127 {
+					return Err("Este ejemplo solo soporta mensajes cortos (<126 bytes)".into());
+				}
+
+
+				// 08. Read the Masking Key (4 bytes)
+				let mut masking_key = [0u8; 4];
+				mut_socket.read_exact(&mut masking_key).await?;
+
+
+				// 09. Read the masked Payload
+				let mut encoded_payload = vec![0u8; payload_len];
+				mut_socket.read_exact(&mut encoded_payload).await?;
+
+
+				// 10. Unmasking by applying the logical XOR operator (D_i = E_i ^ Mask_{i % 4})
+				let mut decoded_payload = vec![0u8; payload_len];
+				for i in 0..payload_len {
+					decoded_payload[i] = encoded_payload[i] ^ masking_key[i % 4];
+				}
+
+
+				// 11. Create and show a String message
+				let message = String::from_utf8(decoded_payload)?;
+				println!("Mensaje recibido: {}", message);
+			}
+		
+		- Save changes
+	
+
+Step 09 - Run application again
+
+	- Apply the next message:
+
+		Emisor: <your user>
+		Mensaje: Los jóvenes piensan que usar IAs sin meditar lo que reciben esta bien.	
+		
+		Console message:
+		
+			Mensaje recibido: jruiz,Los jóvenes piensan que usar IAs sin meditar lo que reciben esta bien.
+			
+	
+	- Try again:
+	
+		Emisor: <your user>
+		Mensaje: Los jóvenes piensan que usar IAs sin meditar lo que reciben esta bien, pero esta todo mal, ya que no analizan el problema y menos el resultado obtenido, se conforman con parlotearlo...!	
+	
+		Console message:
+		
+			Error en la conexión: Este ejemplo solo soporta mensajes cortos (<126 bytes)
+
+
+	- stop server
+	
+		ctrl+c
+		
+		
+Step 10 - Processing messages larger than 126 bytes
+
+	- change variable:
+
+		old  -->  let payload_len = (byte2 & 0x7F) as usize;
+		
+		new  -->  let mut payload_len = (byte2 & 0x7F) as usize;
+
+	- replace process:
+	
+		old: (delete or comment)
+	
+			if payload_len == 126 || payload_len == 127 {
+                return Err("Este ejemplo solo soporta mensajes cortos (<126 bytes)".into());
+            }
+			
+			
+		new:
+
+			if payload_len == 126 {
+				let mut extended_len = [0u8; 2];
+				mut_socket.read_exact(&mut extended_len).await?;				
+				payload_len = u16::from_be_bytes(extended_len) as usize;
+			} else if payload_len == 127 {
+				let mut extended_len = [0u8; 8];
+				mut_socket.read_exact(&mut extended_len).await?;
+				payload_len = u64::from_be_bytes(extended_len) as usize;
+			}
+			
+	- repeat Step 09
+
+
+Step 11 - Create send message function
+
+	- At the end of the main.rs file, writes the next code: 
+
+		async fn send_message(mut_socket: &mut TcpStream, text: &str) -> Result<(), Box<dyn std::error::Error>> {
+			let payload = text.as_bytes();
+			let len = payload.len();
+
+			let mut header = Vec::new();
+
+			// Byte 0: FIN bit (1) + Opcode (1 to text) = 1000 0001 binary = 0x81 hex
+			header.push(0x81);
+
+			// Byte 1: Mask bit (0) + Payload len
+			if len <= 125 {
+				header.push(len as u8);
+			} else if len <= 65535 {
+				header.push(126);
+				header.extend_from_slice(&(len as u16).to_be_bytes());
+			} else {
+				header.push(127);
+				header.extend_from_slice(&(len as u64).to_be_bytes());
+			}
+
+			// Send Header and Payload (without mask)
+			mut_socket.write_all(&header).await?;
+			mut_socket.write_all(payload).await?;
+
+			Ok(())
+		}
+		
+
+	- Call the new function from handle_connection function, add the next code:
+
+		// 12. Call send_message function            
+        send_message(&mut mut_socket, &message).await?;
+ 
+ 
+	- Save changes
+	
+	- Run again:
+	
+		This time, try opening index.html more than once in your web browser and
+		notice that it only responds to the window where the message is sent and 
+		does not replicate it to other instances.
+	
+		
+Step 12 - Create broadcasting (send message to all)
+
+	- Delete all content of main.rs, and writes:
+
+		// Import libraries
+		use tokio::net::{TcpListener, TcpStream};
+		use tokio::io::{AsyncReadExt, AsyncWriteExt};
+		use sha1::{Sha1, Digest};
+		use base64::{engine::general_purpose, Engine as _};
+
+		// Import broadcasting support libraries
+		use std::sync::{Arc, Mutex};
+		use std::collections::HashMap;
+		use tokio::sync::mpsc;
+
+		// Create a data type for our subscriber list
+		type Clients = Arc<Mutex<HashMap<std::net::SocketAddr, mpsc::UnboundedSender<String>>>>;
+
+		#[tokio::main]
+		async fn main() -> Result<(), Box<dyn std::error::Error>> {
+			let listener = TcpListener::bind("0.0.0.0:5000").await?;
+			let clients: Clients = Arc::new(Mutex::new(HashMap::new()));
+			println!("Servidor WebSocket escuchando en 0.0.0.0:5000");
+
+			loop {
+				let (socket, addr) = listener.accept().await?;
+				let clients_ref = Arc::clone(&clients);
+
+				tokio::spawn(async move {
+					if let Err(e) = handle_connection(socket, addr, clients_ref).await {
+						eprintln!("Error con {}: {}", addr, e);
+					}
+				});
+			}
+		}
+
+		// Create web listener
+		async fn handle_connection(mut socket: TcpStream, addr: std::net::SocketAddr, clients: Clients) -> Result<(), Box<dyn std::error::Error>> {
+			// Create the websocket buffer
+			let mut buffer = [0; 2048];
+			let n = socket.read(&mut buffer).await?;
+			let request = String::from_utf8_lossy(&buffer[..n]);
+
+			// Extract the 'Sec-WebSocket-Key' from the HTTP header
+			if let Some(key) = request.lines()
+				.find(|line| line.starts_with("Sec-WebSocket-Key:"))
+				.map(|line| line.split(':').nth(1).unwrap_or("").trim()) {
+				println!("Llave recibida: {}", key);
+
+
+				// The "Magic String" defined in RFC 6455
+				let magic_guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+				let mut hasher = Sha1::new();
+				hasher.update(format!("{}{}", key, magic_guid).as_bytes());
+
+				// Create the Accept-Key (SHA1 -> Base64)
+				let accept_key = general_purpose::STANDARD.encode(hasher.finalize());
+
+
+				// Send Handshake Response
+				let response = format!(
+					"HTTP/1.1 101 Switching Protocols\r\n\
+								 Upgrade: websocket\r\n\
+								 Connection: Upgrade\r\n\
+								 Sec-WebSocket-Accept: {}\r\n\r\n",
+					accept_key
+				);
+
+				socket.write_all(response.as_bytes()).await?;
+			}else {
+				return Err("No se encontró Sec-WebSocket-Key".into());
+			}
+
+			// Broadcast register
+			let (tx, mut rx) = mpsc::unbounded_channel::<String>();
+			clients.lock().unwrap().insert(addr, tx);
+
+			// Split socket, reader and writer
+			let (mut reader, mut writer) = socket.split();
+
+			println!("Nueva conexión establecida: {}", addr);
+
+			// Main loop
+			loop {
+				let mut header = [0u8; 2];
+
+				tokio::select! {
+					// Receives customer data (WebSocket Frame)
+					res = reader.read_exact(&mut header) => {
+						if res.is_err() { break; } // El cliente cerró la conexión
+
+						let byte1 = header[0];
+						let byte2 = header[1];
+
+
+						// Opcode verification (0x8), exit loop
+						let opcode = byte1 & 0x0F;
+						if opcode == 0x8 { break; }
+
+						// Obtains length
+						let mut payload_len = (byte2 & 0x7F) as usize;
+
+						if payload_len == 126 {
+							// Message up the 65,535 bytes (2 additional bytes )
+							let mut extended_len = [0u8; 2];
+							reader.read_exact(&mut extended_len).await?;
+							payload_len = u16::from_be_bytes(extended_len) as usize;
+						} else if payload_len == 127 {
+							// Message up the 18 exabytes (8 additional bytes)
+							let mut extended_len = [0u8; 8];
+							reader.read_exact(&mut extended_len).await?;
+							payload_len = u64::from_be_bytes(extended_len) as usize;
+						}
+
+						// Reading the mask (4 bytes)
+						let mut mask = [0u8; 4];
+						reader.read_exact(&mut mask).await?;
+
+						// Read the masked payload
+						let mut encoded = vec![0u8; payload_len];
+						reader.read_exact(&mut encoded).await?;
+
+						// Unmasking by applying the logical XOR operator (D_i = E_i ^ Mask_{i % 4})
+						let mut decoded = vec![0u8; payload_len];
+						for i in 0..payload_len {
+							decoded[i] = encoded[i] ^ mask[i % 4];
+						}
+
+						let msg_str = String::from_utf8_lossy(&decoded).to_string();
+						println!("[{}] dice: {}", addr, msg_str);
+
+						// Broadcasting message
+						let broadcast_msg = format!("Usuario {}: {}", addr, msg_str);
+						let clients_guard = clients.lock().unwrap();
+						for tx_client in clients_guard.values() {
+							let _ = tx_client.send(broadcast_msg.clone());
+						}
+					}
+
+					// The internal channel receives a message for this client.
+					Some(msg) = rx.recv() => {
+						// Uses the logic of sending frames without a mask (Server -> Client)
+						if let Err(_) = send_message(&mut writer, &msg).await {
+							break;
+						}
+					}
+				}
+			}
+
+			Ok(())
+		}
+
+		async fn send_message(writer: &mut tokio::net::tcp::WriteHalf<'_>, text: &str) -> Result<(), Box<dyn std::error::Error>> {
+			let payload = text.as_bytes();
+			let len = payload.len();
+
+			let mut header = Vec::new();
+
+			// Byte 0: FIN bit (1) + Opcode (1 to text) = 1000 0001 binary = 0x81 hex
+			header.push(0x81);
+
+			// Byte 1: Mask bit (0) + Payload len
+			if len <= 125 {
+				header.push(len as u8);
+			} else if len <= 65535 {
+				header.push(126);
+				header.extend_from_slice(&(len as u16).to_be_bytes());
+			} else {
+				header.push(127);
+				header.extend_from_slice(&(len as u64).to_be_bytes());
+			}
+
+			// Send Header and Payload (without mask)
+			writer.write_all(&header).await?;
+			writer.write_all(payload).await?;
+
+			Ok(())
+		}
+		
+		
+	- Save changes
+	
+	- Run again:
+	
+		This time, try opening index.html more than once in your web browser and
+		notice that the message now reaches all sessions connected to the socket
+		
+		
+Step 13 - Close session
+
+	- Into the main loop of the handle_connection
+	
+		- old:
+		
+			// Opcode verification (0x8), exit loop
+			let opcode = byte1 & 0x0F;
+			if opcode == 0x8 { break; }
+			
+		- new:
+		
+			// Opcode verification (0x8), exit loop
+			let opcode = byte1 & 0x0F;
+
+			if opcode == 0x8 {
+				println!("🔌 Cliente {} solicitó cierre.", addr);
+
+				let close_frame = [0x88, 0x00]; // 0x88 = FIN (0x80) + Opcode Close (0x08)
+				let _ = writer.write_all(&close_frame).await;
+
+				break;
+			}
+			
+			
+	- At the end of the handle_connection function:
+
+		clients.lock().unwrap().remove(&addr);
+		println!("❌ Cliente desconectado: {}", addr);
+		Ok(())
+		
+		
+	- Run again:
+	
+		This time, try closing one of the open windows with the socket link
+
+
+Step 14 - Open the Android Emulator
+
+	Only the AVD is required
+	
+	
+Step 15 - Close the Antivirus (real time scanning)
+
+	
+Setp 16 - Creates the new application
+
+	- Open the PowerShell (administrator is not required)
+	
+	- Changes location to work directory and executes the next instruction:
+	
+		npx @react-native-community/cli@latest init class_09a --version 0.84.0
+		
+		
+	- Open the new project folder with your favorite IDE (visual code)	
+		
+	- Open terminal 
+
+		cd android
+		
+		./gradlew generateCodegenArtifactsFromSchema
+		
+			- you can see a message as the following:
+			
+				Starting a Gradle Daemon, 2 incompatible and 1 stopped Daemons could not be reused, use --status for details
+
+				BUILD SUCCESSFUL in 53s
+				10 actionable tasks: 10 executed
+
+			
+	- Testing application (in terminal):
+
+		cd ..
+	
+		npx react-native run-android
+				
+
+Step 17 - Open the new directory with your favorite IDE. (Visual Code)
+
+	- Create directory in project root
+	
+		- src			
+			- components		
+			- styles
+			
+
+Step 18 - Install required libraries
+
+	- Open the terminal windows	
+	
+		npm install --save react-native-textarea
+		
+		
+Step 19 - Create style file
+
+	- Create src/styles/style_01.js
+	
+	- Write the next code:
+
+		import {StyleSheet} from 'react-native';
+
+		export const style_01 = StyleSheet.create({
+		  tit_01: {
+			alignItems: 'center',
+			textAlign: 'center',
+			fontSize: 25,
+			margin: 10,
+		  },
+		  banda: {
+			flex: 1,
+			flexDirection: 'row',
+		  },
+		  texto: {
+			margin: 5,
+			height: 40,
+			width: '85%',
+			borderStyle: 'solid',
+			borderColor: '#355DA8',
+			borderWidth: 1,
+			fontSize: 16,
+		  },
+		  container: {
+			marginTop: 45,
+			padding: 5,
+			height: '82%',
+			borderColor: '#355DA8',
+			borderWidth: 1,
+		  },
+		  textareaContainer: {
+			padding: 5,
+			height: '100%',
+			borderColor: '#355DA8',
+			borderWidth: 1,
+		  },
+		  textarea: {
+			backgroundColor: '#FFFFFF',
+			color: '#000000',
+			textAlignVertical: 'top',
+			height: '100%',
+			fontSize: 16,
+			padding: 5,
+			borderColor: '#355DA8',
+			borderWidth: 1,
+		  },
+		  btnEnviar: {
+			backgroundColor: '#355DA8',
+			marginTop: 5,
+			height: 40,
+			paddingTop: 10,
+		  },
+		  btnCerrar: {
+			backgroundColor: '#f10933',
+			marginTop: 5,
+			height: 40,
+			paddingTop: 10,
+		  },
+		});
+
+
+	- Save changes
+
+
+Step 20 - Create the Socket module file
+
+	- Create src/components/accSocket.js
+	
+	- Write the next code:
+	
+		import React from 'react';
+		import {useState, useEffect} from 'react';
+		import {Text, TextInput, TouchableOpacity, View} from 'react-native';
+		import Textarea from 'react-native-textarea';
+		import {ws} from '../../App';
+		import {style_01} from '../styles/style';
+
+		const AccSocket = () => {
+		  const [mensaje, setMensaje] = useState('');
+		  const [mensajes, setMensajes] = useState('');
+
+		  ws.onmessage = e => {
+			// a message was received
+			const texto = mensajes + '\n' + e.data;
+			setMensajes(texto);
+			console.log(e.data);
+			console.log(texto);
+		  };
+
+		  ws.onerror = e => {
+			// an error occurred
+			console.log(e.message);
+		  };
+
+		  const enviarMensaje = () => {
+			ws.send(mensaje);
+			setMensaje('');
+		  };
+
+		  const cerrarSesion = () => {
+			ws.onclose = e => {
+			  // connection closed
+			  console.log(e.code, e.reason);
+			};
+		  };
+
+		  return (
+			<View>
+			  <Text style={style_01.tit_01}>Acceso al Socket</Text>
+			  <View style={style_01.banda}>
+				<TextInput
+				  value={mensaje}
+				  style={style_01.texto}
+				  multiline={true}
+				  placeholder={'Write yours comment...'}
+				  onChangeText={newValue => {
+					setMensaje(newValue);
+				  }}
+				/>
+				<TouchableOpacity
+				  style={style_01.btnEnviar}
+				  onPress={() => enviarMensaje()}>
+				  <Text style={style_01.tit_04}> SEND </Text>
+				</TouchableOpacity>
+			  </View>
+			  <View style={style_01.container}>
+				<Textarea
+				  containerStyle={style_01.textareaContainer}
+				  style={style_01.textarea}
+				  defaultValue={mensajes}
+				  multiline={true}
+				  numberOfLines={10}
+				  editable={false}
+				/>
+			  </View>
+			  <View style={style_01.banda}>
+				<TouchableOpacity
+				  style={style_01.btnCerrar}
+				  onPress={() => cerrarSesion()}>
+				  <Text style={style_01.tit_04}> CLOSE SESSION </Text>
+				</TouchableOpacity>
+			  </View>
+			</View>
+		  );
+		};
+
+		export default AccSocket;
+	
+	
+	- Save changes
+
+
+Step 21 - Changes App.tsx file
+
+	- Remember change the ip_address, port and nickName	
+
+	- Clear App.tsx file, delete all code.	
+		
+	- Write the next code:
+
+		import React from 'react';
+		import AccSocket from './src/components/accSocket';
+		import {View} from 'react-native';
+
+		export const ws = new WebSocket('ws://<ip_address>:<port>');
+		const App = () => {
+		  ws.onopen = () => {
+			ws.send('Conectando al servidor');
+			ws.send('Usuario: <nickName>');
+		  };
+		  return (
+			<View style={{flex: 1}}>
+			  <AccSocket />
+			</View>
+		  );
+		};
+		export default App;
+
+	- Save changes
+
+
+Step 22 - Execute the application
+
+	- Open terminal window in Visual Code
+			
+		npm start	(run metro server)
+		
+		- awaits that sub menu appears, and select android option pressing 'a' key
+	
+
+Step 23 - Be happy		

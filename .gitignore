@@ -1,0 +1,48 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# React Native
+android/build/
+android/.gradle/
+android/app/build/
+android/app/release/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+ios/build/
+ios/Pods/
+ios/DerivedData/
+*.ipa
+*.apk
+*.aab
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+
+# Rust
+target/
+Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Env
+.env
+.env.local

@@ -1,0 +1,298 @@
+=================================================================================
+University.: Universidad Técnica Nacional
+Campus.....: Pacífico (JRMP)
+Career.....: Ingeniería en Tecnologías de Información
+Period.....: 1C-2025
+Course.....: ITI-721 - Desarrollo de Aplicaciones para Dispositivos Móviles II
+Document...: Class_07.txt
+Goals......: - Create application using React-Native libraries.
+			 - Config Android environment.
+			 - Using the SQLite.			 
+Professor..: Jorge Ruiz (york)
+Student....:
+=================================================================================
+
+Step 01 - Open the Android Emulator
+
+	Only the AVD is required
+	
+	or physical cellphone in developer options activated
+	
+	
+Step 02 - Close the Antivirus (real time scanning) (only if is required).
+
+
+Step 03 - Creates the new application:
+
+	- Open the PowerShell (administrator is not required)
+		
+	- Changes location to work directory and executes the next instruction:
+	
+		npx @react-native-community/cli@latest init class_07 --version 0.77.0
+		
+		
+	- Open the new project folder with your favorite IDE (visual code)	
+		
+	- Open terminal 
+
+		cd android
+		
+		./gradlew generateCodegenArtifactsFromSchema
+		
+			- you can see a message as the following:
+			
+				Starting a Gradle Daemon, 1 incompatible and 1 stopped Daemons could not be reused, use --status for details
+
+				BUILD SUCCESSFUL in 45s
+				10 actionable tasks: 10 executed
+
+			
+	- Testing application (in terminal):
+
+		cd ..
+	
+		npx react-native run-android
+		
+			- you can see a message as the following:
+		
+				BUILD SUCCESSFUL in 1m 59s
+				58 actionable tasks: 48 executed, 10 up-to-date
+				info Connecting to the development server...
+				8081
+				info Starting the app on "emulator-5554"...
+				Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=com.class_07/.MainActivity }
+
+		
+	- YUPI time (01)
+
+
+Step 04 - Install required library
+
+	- Using the opened terminal, executes:
+	
+		npm install  @types/react-native-sqlite-storage
+		
+		npm install  react-native-sqlite-storage
+		
+		
+Step 05 - Create the source structure
+
+	- In the <root_project> creates the next directories
+	
+		- src
+			- components
+			- models
+			
+			
+Step 06 - Create users model		
+
+	- Create <root_project>/src/models/Users.ts and writes:
+	
+		export type User = {
+			id: number;
+			name: string;
+			email: string;
+		};
+		
+	- Save changes
+
+	
+Step 07 - Create database component
+
+	- Create <root_project>/src/components/creaDB.ts and writes:
+	
+		import {enablePromise, openDatabase, SQLiteDatabase} from 'react-native-sqlite-storage';
+		import {User} from '../models/Users.ts';
+
+		enablePromise(true);
+		const tableName = 'Users';
+
+		export const createTable = async (db: SQLiteDatabase) => {
+			await db.transaction((tx: any) => {
+			   tx.executeSql(`create table if not exists ${tableName}(id integer primary key autoincrement , name text, email text);`);
+			}).then(() => {
+				console.log('Table created successfully');
+			}).catch((error: any) => {
+				console.log(error);
+			});
+		};
+
+		export const getConnection = () => {
+			return openDatabase({name: 'myDB.db', location: 'default'});
+		};
+
+		export const insertUser = async (db: SQLiteDatabase, user: User) => {
+			await db.transaction((tx: any) => {
+				tx.executeSql(`insert into ${tableName}(name, email) VALUES (?, ?);`, [user.name, user.email]);
+			}).then(() => {
+				console.log('User inserted successfully');
+			}).catch((error: any) => {
+				console.log(error);
+			});
+		};
+
+		export const getUsers = async (db: SQLiteDatabase) => {
+			try{
+				const results = await db.executeSql(`select * from ${tableName};`, []);
+				let users: User[] = [];
+				results.forEach(result => {
+					for (let i = 0; i < result.rows.length; i++) {
+						users.push(result.rows.item(i));
+					}
+				});
+				return users;
+			}catch(error: any){
+				console.log(error);
+			}
+		};
+
+		export const getUser = async (db: SQLiteDatabase, id: number) => {
+		   try{
+			   const results = await db.executeSql(`select * from ${tableName} where id = ?;`, [id]);
+			   return results[0].rows.item(0);
+		   }catch(error: any){
+				console.log(error);
+			}
+		};
+
+		export const updateUser = async (db: SQLiteDatabase, user: User) => {
+			await db.transaction((tx: any) => {
+				tx.executeSql(`update ${tableName} set name = ?, email = ? where id = ?;`, [user.name, user.email, user.id]);
+			}).then(() => {
+				console.log('User updated successfully');
+			}).catch((error: any) => {
+				console.log(error);
+			});
+		};
+
+		export const deleteUser = async (db: SQLiteDatabase, id: number) => {
+			await db.transaction((tx: any) => {
+				tx.executeSql(`delete from ${tableName} where id = ?;`, [id]);
+			}).then(() => {
+				console.log('User deleted successfully');
+			}).catch((error: any) => {
+				console.log(error);
+			});
+		};
+
+		export const deleteTable = async (db: SQLiteDatabase) => {
+			await db.transaction((tx: any) => {
+				tx.executeSql(`drop table ${tableName};`);
+			}).then(() => {
+				console.log('Table deleted successfully');
+			}).catch((error: any) => {
+				console.log(error);
+			});
+		};
+
+
+	- Save changes
+
+
+Step 08 - Update the App.tsx file
+
+	- Open <root_project>/App.tsx
+	
+		- Delete all code and replace with:
+		
+			import React from 'react';
+			import { Button, Text, View } from 'react-native';
+			import { useCallback, useEffect } from 'react';
+			import { getConnection, createTable, insertUser, getUsers, getUser, updateUser, deleteUser } from './src/components/creaDB';
+
+			const App =  () => {
+
+				const initDatabase = useCallback(async () => {
+					try {
+						const db = await getConnection();
+						createTable(db).then(r => console.log(r)).catch(e => console.log(e));
+					} catch (error) {
+						console.error(error);
+					}
+				}, []);
+
+
+				useEffect(() => {
+					initDatabase();
+				}, [initDatabase]);
+
+				const insUser = async () => {
+					const db = await getConnection();
+					await insertUser(db, {id: -1, name: 'Jorge Ruiz', email: 'jruiz@utn.ac.cr'});
+				};
+
+				const getAllUsers = async () => {
+					const db = await getConnection();
+					const users = await getUsers(db);
+					console.log(users);
+				};
+
+				const getOneUser = async () => {
+					const db = await getConnection();
+					const user = await getUser(db, 1);
+					console.log(user);
+				};
+
+				const updUser = async () => {
+					const db = await getConnection();
+					await updateUser(db, {id: 1, name: 'Merlina Addams', email: 'maddams@est.utn.ac.cr'});
+				};
+
+				const delUser = async () => {
+					const db = await getConnection();
+					await deleteUser(db, 1);
+				};
+
+				return (
+				  <View>
+					<Text>Database Example</Text>
+					<Button title="Insert User" onPress={insUser} />
+					<Button title="Get Users" onPress={getAllUsers} />
+					<Button title="Get User" onPress={getOneUser} />
+					<Button title="Update User" onPress={updUser} />
+					<Button title="Delete User" onPress={delUser} />
+				  </View>
+				);
+			};
+
+			export default App;
+		
+		- Save changes
+
+	- Go back to the terminal and execute again:
+	
+		cd android
+		
+		./gradlew clean  
+		
+		./gradlew assembleRelease
+		
+			- you can see:
+			
+				BUILD SUCCESSFUL in 2m 57s
+				74 actionable tasks: 64 executed, 10 up-to-date
+				
+		cd ..
+
+		npx react-native run-android
+
+			
+	- YUPI time again (02)
+
+
+====================================================================
+Practice into the classroom
+====================================================================
+Using the example given by your teacher with the use of SQLite, 
+adapt it to develop an application that simulates Sticky Notes
+
+These should be sorted by date and time, so adjust your database.
+
+The application must be able to insert, modify or delete a note, 
+as well as be able to search for a particular note based on its 
+title given at the time of creation.
+
+The application should be able to clean all notes recorded in it.
+
+It should be noted that the notes can have varied colors.
+

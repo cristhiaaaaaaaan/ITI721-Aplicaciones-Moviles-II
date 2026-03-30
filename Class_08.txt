@@ -1,0 +1,1104 @@
+=================================================================================
+University.: Universidad Técnica Nacional
+Campus.....: Pacífico (JRMP)
+Career.....: Ingeniería en Tecnologías de Información
+Period.....: 1C-2026
+Course.....: ITI-721 - Desarrollo de Aplicaciones para Dispositivos Móviles II
+Document...: Class_08.txt
+Goals......: Connection with Firebase
+				- User validation
+				- Retrieve data from FireStore
+				- Retrieve file from Storage
+				- Data manipulation
+Professor..: Jorge Ruiz (york)
+Student....:
+=================================================================================
+
+Step 01 - Open the Android Emulator
+
+	Only the AVD is required
+	
+	or physical cellphone in developer options activated
+	
+	
+Step 02 - Close the Antivirus (real time scanning)
+
+	
+Setp 03 - Creates the new application
+
+	- Open the PowerShell (administrator is not required)
+	
+	- Changes location to work directory and executes the next instruction:
+	
+		npx @react-native-community/cli@latest init class_08 --version 0.84.0		
+		
+		
+	- Open the new project folder with your favorite IDE (visual code)	
+		
+	- Open terminal 
+
+		cd android
+		
+		./gradlew generateCodegenArtifactsFromSchema
+		
+			- you can see a message as the following:
+			
+				Starting a Gradle Daemon, 2 incompatible and 1 stopped Daemons could not be reused, use --status for details
+
+				BUILD SUCCESSFUL in 57s
+				12 actionable tasks: 12 executed
+
+			
+	- Testing application (in terminal):
+
+		cd ..
+	
+		npx react-native run-android
+		
+		
+	- YUPI time (01)
+
+
+Step 04 - Open the new directory with your favorite IDE. (Visual Code)
+
+	- Create directory in project root
+	
+		- src			
+			- components
+				- collections
+				- users
+			- styles
+			- utils
+			- views
+			
+
+Step 05 - Install required libraries
+
+	- Open the terminal windows		
+		
+		npm install @react-navigation/native-stack @react-navigation/native 
+		npm install react-native-screens react-native-safe-area-context
+		
+		npm install --save @react-native-firebase/app
+		npm install --save @react-native-firebase/auth
+		npm install --save @react-native-firebase/firestore
+		npm install --save @react-native-firebase/storage
+		
+		
+Step 06 - Open gradle builder configuration file
+
+		- Open <root_project>\android\app\build.gradle
+		
+			- Seek namespace variable:
+		
+				namespace "class_08"	(for me is: com.class_08)
+				
+				
+			- Keep this value in yours paper notes or take a picture or
+			  create a sticky note
+
+			  
+		- Close this file without changes
+
+
+Step 07 - Create application certificate
+
+	- Open the <root_project> in PowerShell console.
+	
+		cd android
+		
+		./gradlew signingReport
+		
+			You can see the next display:
+			
+				> Task :app:signingReport
+				Variant: debug
+				Config: debug                                                                                                                                                                    
+				Store: E:\rn\class_08\android\app\debug.keystore                                                                                                                                 
+				Alias: androiddebugkey                                                                                                                                                           
+				MD5: 20:F4:61:48:B7:2D:8E:5E:5C:A2:3D:37:A4:F4:14:90                                                                                                                             
+				SHA1: 5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25                                                                                                                
+				SHA-256: FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C                                                                         
+				Valid until: Tuesday, April 30, 2052                                                                                                                                             
+				----------
+				Variant: release                                                                                                                                                                 
+				Config: debug                                                                                                                                                                    
+				Store: E:\rn\class_08\android\app\debug.keystore                                                                                                                                 
+				Alias: androiddebugkey                                                                                                                                                           
+				MD5: 20:F4:61:48:B7:2D:8E:5E:5C:A2:3D:37:A4:F4:14:90                                                                                                                             
+				SHA1: 5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25                                                                                                                
+				SHA-256: FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C                                                                         
+				Valid until: Tuesday, April 30, 2052                                                                                                                                             
+				----------
+				Variant: debugOptimized                                                                                                                                                          
+				Config: debug                                                                                                                                                                    
+				Store: E:\rn\class_08\android\app\debug.keystore                                                                                                                                 
+				Alias: androiddebugkey                                                                                                                                                           
+				MD5: 20:F4:61:48:B7:2D:8E:5E:5C:A2:3D:37:A4:F4:14:90                                                                                                                             
+				SHA1: 5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25                                                                                                                
+				SHA-256: FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C                                                                         
+				Valid until: Tuesday, April 30, 2052                                                                                                                                             
+				----------
+				Variant: debugAndroidTest                                                                                                                                                        
+				Config: debug                                                                                                                                                                    
+				Store: E:\rn\class_08\android\app\debug.keystore                                                                                                                                 
+				Alias: androiddebugkey                                                                                                                                                           
+				MD5: 20:F4:61:48:B7:2D:8E:5E:5C:A2:3D:37:A4:F4:14:90                                                                                                                             
+				SHA1: 5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25                                                                                                                
+				SHA-256: FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C                                                                         
+				Valid until: Tuesday, April 30, 2052                                                                                                                                             
+				----------
+
+				> Task :react-native-firebase_app:signingReport
+				Variant: debugAndroidTest
+				Config: debug                                                                                                                                                                    
+				Store: C:\Users\jruiz\.android\debug.keystore                                                                                                                                    
+				Alias: AndroidDebugKey                                                                                                                                                           
+				MD5: 21:D7:AA:62:04:FC:4D:12:CC:4E:1A:91:99:C5:A4:4B                                                                                                                             
+				SHA1: 0B:29:06:8E:EC:65:EC:E9:9B:8A:43:DD:E8:F2:FA:6B:D1:1E:EB:1A                                                                                                                
+				SHA-256: 58:4A:38:35:65:A5:B4:F5:AA:E3:88:6F:6F:1F:EB:56:0A:11:62:FD:B0:E6:F6:FB:AA:DF:80:C7:F8:30:EC:37                                                                         
+				Valid until: Friday, March 21, 2053                                                                                                                                              
+				----------
+
+				> Task :react-native-firebase_auth:signingReport
+				Variant: debugAndroidTest                                                                                                                                                        
+				Config: debug                                                                                                                                                                    
+				Store: C:\Users\jruiz\.android\debug.keystore                                                                                                                                    
+				Alias: AndroidDebugKey                                                                                                                                                           
+				MD5: 21:D7:AA:62:04:FC:4D:12:CC:4E:1A:91:99:C5:A4:4B                                                                                                                             
+				SHA1: 0B:29:06:8E:EC:65:EC:E9:9B:8A:43:DD:E8:F2:FA:6B:D1:1E:EB:1A                                                                                                                
+				SHA-256: 58:4A:38:35:65:A5:B4:F5:AA:E3:88:6F:6F:1F:EB:56:0A:11:62:FD:B0:E6:F6:FB:AA:DF:80:C7:F8:30:EC:37                                                                         
+				Valid until: Friday, March 21, 2053                                                                                                                                              
+				----------
+
+				> Task :react-native-firebase_firestore:signingReport
+				Variant: debugAndroidTest
+				Config: debug                                                                                                                                                                    
+				Store: C:\Users\jruiz\.android\debug.keystore                                                                                                                                    
+				Alias: AndroidDebugKey                                                                                                                                                           
+				MD5: 21:D7:AA:62:04:FC:4D:12:CC:4E:1A:91:99:C5:A4:4B                                                                                                                             
+				SHA1: 0B:29:06:8E:EC:65:EC:E9:9B:8A:43:DD:E8:F2:FA:6B:D1:1E:EB:1A                                                                                                                
+				SHA-256: 58:4A:38:35:65:A5:B4:F5:AA:E3:88:6F:6F:1F:EB:56:0A:11:62:FD:B0:E6:F6:FB:AA:DF:80:C7:F8:30:EC:37                                                                         
+				Valid until: Friday, March 21, 2053                                                                                                                                              
+				----------
+
+				> Task :react-native-firebase_storage:signingReport
+				Variant: debugAndroidTest                                                                                                                                                        
+				Config: debug                                                                                                                                                                    
+				Store: C:\Users\jruiz\.android\debug.keystore                                                                                                                                    
+				Alias: AndroidDebugKey                                                                                                                                                           
+				MD5: 21:D7:AA:62:04:FC:4D:12:CC:4E:1A:91:99:C5:A4:4B                                                                                                                             
+				SHA1: 0B:29:06:8E:EC:65:EC:E9:9B:8A:43:DD:E8:F2:FA:6B:D1:1E:EB:1A                                                                                                                
+				SHA-256: 58:4A:38:35:65:A5:B4:F5:AA:E3:88:6F:6F:1F:EB:56:0A:11:62:FD:B0:E6:F6:FB:AA:DF:80:C7:F8:30:EC:37                                                                         
+				Valid until: Friday, March 21, 2053                                                                                                                                              
+				----------
+
+				> Task :react-native-safe-area-context:signingReport
+				Variant: debugAndroidTest                                                                                                                                                        
+				Config: debug                                                                                                                                                                    
+				Store: C:\Users\jruiz\.android\debug.keystore                                                                                                                                    
+				Alias: AndroidDebugKey                                                                                                                                                           
+				MD5: 21:D7:AA:62:04:FC:4D:12:CC:4E:1A:91:99:C5:A4:4B                                                                                                                             
+				SHA1: 0B:29:06:8E:EC:65:EC:E9:9B:8A:43:DD:E8:F2:FA:6B:D1:1E:EB:1A                                                                                                                
+				SHA-256: 58:4A:38:35:65:A5:B4:F5:AA:E3:88:6F:6F:1F:EB:56:0A:11:62:FD:B0:E6:F6:FB:AA:DF:80:C7:F8:30:EC:37                                                                         
+				Valid until: Friday, March 21, 2053                                                                                                                                              
+				----------
+
+				> Task :react-native-screens:signingReport
+				Variant: debugAndroidTest
+				Config: debug                                                                                                                                                                    
+				Store: C:\Users\jruiz\.android\debug.keystore                                                                                                                                    
+				Alias: AndroidDebugKey                                                                                                                                                           
+				MD5: 21:D7:AA:62:04:FC:4D:12:CC:4E:1A:91:99:C5:A4:4B                                                                                                                             
+				SHA1: 0B:29:06:8E:EC:65:EC:E9:9B:8A:43:DD:E8:F2:FA:6B:D1:1E:EB:1A                                                                                                                
+				SHA-256: 58:4A:38:35:65:A5:B4:F5:AA:E3:88:6F:6F:1F:EB:56:0A:11:62:FD:B0:E6:F6:FB:AA:DF:80:C7:F8:30:EC:37                                                                         
+				Valid until: Friday, March 21, 2053                                                                                                                                              
+				----------
+
+				[Incubating] Problems report is available at: file:///E:/rn/class_08/android/build/reports/problems/problems-report.html
+
+				Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+				You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+				For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+				BUILD SUCCESSFUL in 11s
+				17 actionable tasks: 7 executed, 10 up-to-date
+				Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.0.0/userguide/configuration_cache_enabling.html
+		
+
+		You need take on mind the SHA1 value of the:
+
+			Task.....: react-native-firebase_app:signingReport
+			Variant..: debugAndroidTest		
+				
+				
+Step 08 - Configure Firebase resources access (remember use yours google account)
+
+	- Open yours favorite web browser
+	
+	
+	- Go to https://console.firebase.google.com/
+	
+	
+	- Creates new project	
+	
+		- Name...:react-08				[press continue button]
+		- Disable Gemini in Firebase	[press continue button]
+		- Disable Google Analytics		[press continue button]
+	
+	
+	- In the main pane press [Add app] button				
+	
+		- Select android application
+			
+			- Register app:
+				- Android Package Name...: com.class_08
+				- App nickName...........: Clase 08
+				
+			- Click [Register app button]
+			
+			- Select Class 08 app setting button
+			
+				- Add fingerprint
+
+					- Certificate fingerprint: 
+						0B:29:06:8E:EC:65:EC:E9:9B:8A:43:DD:E8:F2:FA:6B:D1:1E:EB:1A (SHA1)				
+			
+				
+				- Download google-services.json into two tarjet folders of yours project:
+				  
+					- <root_project>\android\app\google-services.json.
+				
+					(<root_project>\android\app\src\debug\google-services.json.)
+				  
+	
+	- Go back to Visual Code or another IDE 
+		
+		- Configure Firebase with Android credentials
+
+			- Open <root_project>\android\build.gradle file:
+
+				- Into dependencies section add the next code:
+				
+					classpath("com.google.gms:google-services:4.4.2")
+			
+
+			- Open <root_project>\android\app\build.gradle file
+			
+				- Writes the next code at the begin of file:
+				
+					apply plugin: "com.google.gms.google-services"
+
+	
+		- Save changes on both files
+
+
+Step 09 - Create user validate component	
+
+	- Creates <root_project>\src\components\users\fb_Valiusers.js and writes:
+		
+		import React, {useState, useEffect} from 'react';
+		import {View, Text} from 'react-native';
+		import auth from '@react-native-firebase/auth';
+
+		const ValiUser = props => {
+		  // Set an initializing state whilst Firebase connects
+		  const [initializing, setInitializing] = useState(true);
+
+		  const [user, setUser] = useState();
+
+		  // Handle user state changes
+		  // eslint-disable-next-line react-hooks/exhaustive-deps
+		  function onAuthStateChanged(user) {
+			setUser(user);
+			if (initializing) {
+			  setInitializing(false);
+			}
+		  }
+
+		  useEffect(() => {
+			return auth().onAuthStateChanged(onAuthStateChanged);			
+		  }, [onAuthStateChanged]);
+
+		  if (initializing) {
+			return null;
+		  }
+
+		  if (!user) {
+			return (
+			  <View>
+				<Text>You need to log in</Text>
+			  </View>
+			);
+		  }
+
+		  return (
+			<View>
+			  <Text>Welcome {user.email}</Text>
+			</View>
+		  );
+		};
+
+		export default ValiUser;
+
+	- Save changes
+
+
+Step 10 - Configure application
+
+	- Open <root_project>\App.tsx
+	
+		- Delete all content and writes :
+	
+			import React from 'react';
+			import {View} from 'react-native';
+			import ValiUser from './src/components/users/fb_Valiusers';
+
+			const App = () => {
+			  return (
+				<View>
+				  <ValiUser />
+				</View>
+			  );
+			};
+
+			export default App;
+
+	- Save changes
+
+
+Step 11 - Execute the application
+
+	- Open terminal window in Visual Code
+			
+		npx react-native run-android
+
+		
+Step 12 - Be happy 1
+
+	Y U P Y
+	
+	
+Step 13 - Create new user account (go back to Firebase console)
+
+	- In the Firebase console: Select Compilation drown drop-box
+		
+		- Add Authentication Module:
+		
+			- Press [Begin] button:
+		
+				- Using Email/password	
+
+					- Email/password...: Enable
+					
+					- Email link.......: Disable
+					
+				- Save changes	
+			
+			
+		- Add Firestore Database Module
+		
+			- Press [Create database] button:
+			
+				- Standart Edition:
+
+					- Name.......: default
+			
+					- Location...: nam5 (United States)
+			
+					- Press [Next] button
+					
+				- Start on production mode	
+				
+					- Press [Create] button
+					
+			
+			- Initial Collection (start collection) (Data tab)
+			
+				users:
+					iduser...: String	-> <value of authentication session>
+					name.....: String	-> <random value>
+					email....: String	-> <random value>
+					job......: String	-> <random value>
+					
+				- Save changes	
+			
+			
+			- First Rules (Rules tab)
+
+				- Delete the current rule and writes next rules:
+				
+					rules_version = '2';
+
+					service cloud.firestore {
+					  match /databases/{database}/documents {
+						match /{users}/{document=**}{
+						  allow read:if true;
+						  allow create: if request.resource.data.iduser is string &&
+										   request.resource.data.name is string &&
+										   request.resource.data.email is string &&
+										   request.resource.data.job is string;
+						  allow update: if true;
+						  allow delete: if false;
+						}
+					  }
+					}	
+			
+
+Step 14 - Create the new user component	(go back to Visual Code IDE)
+
+	- Creates <root_project>\src\components\users\fb_Registeruser.js and writes:
+	
+		import React, {useState, useEffect} from 'react';
+		import {View, Text} from 'react-native';
+		import auth from '@react-native-firebase/auth';
+		import db from '@react-native-firebase/firestore';
+
+		const RegisterUser = () => {
+		  const [estado, setEstado] = useState();
+
+		  const registrar = async () => {
+			auth()
+			  .createUserWithEmailAndPassword('maddams@est.utn.ac.cr', 'parda99*')
+			  .then(() => {			  
+				// Register data into users collection
+				const user = auth().currentUser;
+				db().collection('users').doc(user.uid).set({
+				  iduser: user.uid,
+				  name: 'Merlina Addams',
+				  email: 'maddams@est.utn.ac.cr',
+				  job: 'Frontend Developer',
+				});
+
+				// Print the user state
+				console.log('User account created & signed in!');
+				setEstado('User account created & signed in!');
+			  })
+			  .catch(error => {
+				if (error.code === 'auth/email-already-in-use') {
+				  console.log('That email address is already in use!');
+				  setEstado('That email address is already in use!');
+				}
+
+				if (error.code === 'auth/invalid-email') {
+				  console.log('That email address is invalid!');
+				  setEstado('That email address is invalid!');
+				}
+				
+			  });
+		  };
+
+		  useEffect(() => {
+			registrar();
+		  }, []);
+
+		  return (
+			<View>
+			  <Text>Register User</Text>
+			  <Text>{estado}</Text>
+			</View>
+		  );
+		};
+
+		export default RegisterUser;
+		
+	- Save changes	
+	
+	
+Step 15 - Changes the application
+
+	- Open <root_project>\App.tsx	
+	
+		- Apply the next changes:
+		
+			//import ValiUser from './src/components/users/fb_Valiusers';
+			import RegisterUser from './src/components/users/fb_Registeruser';
+		
+			const App = () => {
+			  return (
+				<View>
+				  <RegisterUser />
+				</View>
+			  );
+			};
+			
+	- Save changes	
+	
+
+Step 16 - Execute the application
+
+	- Open terminal window in Visual Code
+			
+		npx react-native run-android
+
+
+Step 17 - Be happy 2
+
+	- Go to Firebase console and review the Firestore database
+	
+		if can you see the merlina account
+			Y U P Y	
+		else
+			No yupi
+	
+	
+Step 18	- Create the login user component	
+
+	- Creates <root_project>\src\components\users\fb_Loginuser.js and writes:
+	
+		import React, {useState, useEffect} from 'react';
+		import {View, Text} from 'react-native';
+		import auth from '@react-native-firebase/auth';
+
+		const LoginUser = () => {
+		  const [estado, setEstado] = useState();
+
+		  const autenticar = async () => {
+			auth()
+			  .signInWithEmailAndPassword('maddams@est.utn.ac.cr', 'parda99*')
+			  .then(() => {
+				console.log('User is signed in!');
+				setEstado('User is signed in!');
+			  })
+			  .catch(error => {
+				if (error.code === 'auth/invalid-credential') {
+				  console.log(
+					'The supplied auth credential is incorrect, malformed or has expired!',
+				  );
+				  setEstado(
+					'The supplied auth credential is incorrect, malformed or has expired!',
+				  );
+				}
+			  });
+		  };
+
+		  useEffect(() => {
+			autenticar();
+		  }, []);
+
+		  return (
+			<View>
+			  <Text>Authenticate User</Text>
+			  <Text>{estado}</Text>
+			</View>
+		  );
+		};
+
+		export default LoginUser;
+		
+	- Save changes		
+		
+		
+Step 19 - Changes the application
+
+	- Open <root_project>\App.tsx	
+	
+		- Apply the next changes:
+
+			//import ValiUser from './src/components/users/fb_Valiusers';
+			//import RegisterUser from './src/components/users/fb_Registeruser';
+			import LoginUser from './src/components/users/fb_Loginuser';
+
+			const App = () => {
+			  return (
+				<View>
+				  <LoginUser />
+				</View>
+			  );
+			};
+			
+	- Save changes		
+	
+	
+Step 20 - Execute the application
+
+	- Open terminal window in Visual Code
+			
+		npx react-native run-android
+
+
+Step 21 - Be happy 3
+
+	Y U P Y	
+	
+	
+Step 22	- Create the logout user component	
+
+	- Creates <root_project>\src\components\users\fb_Logoutuser.js and writes:
+	
+		import React, {useState, useEffect} from 'react';
+		import {View, Text} from 'react-native';
+		import auth from '@react-native-firebase/auth';
+
+		const LogoutUser = () => {
+		  const [estado, setEstado] = useState();
+
+		  const salir = async () => {
+			auth()
+			  .signOut()
+			  .then(() => {
+				console.log('User is signed out!');
+				setEstado('User is signed out!');
+			  });
+		  };
+
+		  useEffect(() => {
+			salir();
+		  }, []);
+
+		  return (
+			<View>
+			  <Text>Close User Session</Text>
+			  <Text>{estado}</Text>
+			</View>
+		  );
+		};
+
+		export default LogoutUser;
+		
+	- Save changes
+
+
+Step 23 - Changes the application
+
+	- Open <root_project>\App.tsx	
+	
+		- Apply the next changes:
+		
+			//import ValiUser from './src/components/users/fb_Valiusers';
+			//import RegisterUser from './src/components/users/fb_Registeruser';
+			//import LoginUser from './src/components/users/fb_Loginuser';
+			import LogoutUser from './src/components/users/fb_Logoutuser';
+
+			const App = () => {
+			  return (
+				<View>
+				  <LogoutUser />
+				</View>
+			  );
+			};
+			
+	- Save changes		
+
+
+Step 24 - Execute the application
+
+	- Open terminal window in Visual Code
+			
+		npx react-native run-android
+
+
+Step 25 - Be happy 4
+
+	Y U P Y		
+
+
+Step 26 - Add camera support
+
+	- Install required libraries
+	
+		npm install react-native-image-picker
+		
+	
+	- Create <root_project>\src\components\collections\CameraUpload.js and writes:
+
+		import React, { useState } from 'react';
+		import { View, Button, Image, TextInput } from 'react-native';
+		import { launchCamera } from 'react-native-image-picker';
+		import storage from '@react-native-firebase/storage';
+		import firestore from '@react-native-firebase/firestore';
+		import auth from '@react-native-firebase/auth';
+
+		const CameraUpload = ({ navigation }) => {
+		  const [imageUri, setImageUri] = useState(null);
+		  const [comment, setComment] = useState('');
+
+		  const takePhoto = () => {
+			launchCamera({ mediaType: 'photo', quality: 0.5 }, (response) => {
+			  if (!response.didCancel) setImageUri(response.assets[0].uri);
+			});
+		  };
+
+		  const uploadData = async () => {
+			const user = auth().currentUser;
+			const fileName = `photos/${user.uid}_${Date.now()}.jpg`;
+
+			// 1. Subir a Storage
+			const reference = storage().ref(fileName);
+			await reference.putFile(imageUri);
+			const url = await reference.getDownloadURL();
+
+			// 2. Registrar en Firestore [cite: 118, 120]
+			await firestore().collection('photos').add({
+			  url: url,
+			  comment: comment,
+			  user: user.email,
+			  date: new Date().toLocaleDateString(),
+			  time: new Date().toLocaleTimeString(),
+			  userId: user.uid,
+			  createdAt: firestore.FieldValue.serverTimestamp(),
+			});
+
+			alert('¡Imagen compartida!');
+			setImageUri(null);
+			setComment('');
+			alert('¡Imagen subida con éxito!');
+			navigation.goBack();
+		  };
+
+		  return (
+			<View>
+			  <Button title="Tomar Foto" onPress={takePhoto} />
+			  {imageUri && (
+				<>
+				  <Image source={{ uri: imageUri }} style={{ width: 200, height: 200 }} />
+				  <TextInput placeholder="Añadir comentario..." onChangeText={setComment} />
+				  <Button title="Subir a la Galería" onPress={uploadData} />
+				</>
+			  )}
+			</View>
+		  );
+		};
+
+		export default CameraUpload;
+
+
+	- Save changes
+
+
+Step 27 - Add components into the application 
+
+	- Create <root_project>\src\views\Register.js and writes:
+	
+		import React, { useState } from 'react';
+		import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+		import auth from '@react-native-firebase/auth';
+		import db from '@react-native-firebase/firestore';
+
+		const Register = ({ navigation }) => {		  
+		  const [name, setName] = useState('');
+		  const [email, setEmail] = useState('');
+		  const [job, setJob] = useState('');
+		  const [password, setPassword] = useState('');
+
+		  const handleRegister = async () => {			
+			if (!name || !email || !job || !password) {
+			  Alert.alert("Error", "Por favor completa todos los campos");
+			  return;
+			}
+
+			try {			  
+			  const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+			  const user = userCredential.user;
+			  
+			  await db().collection('users').doc(user.uid).set({
+				iduser: user.uid,
+				name: name,
+				email: email,
+				job: job,
+			  });
+
+			  console.log('¡Cuenta de usuario creada e iniciada!');
+			  Alert.alert("Éxito", "Usuario registrado correctamente");
+			  
+			} catch (error) {
+			  if (error.code === 'auth/email-already-in-use') {
+				Alert.alert("Error", "Ese correo ya está en uso");
+			  } else if (error.code === 'auth/invalid-email') {
+				Alert.alert("Error", "El correo electrónico es inválido");
+			  } else {
+				Alert.alert("Error", error.message);
+			  }
+			}
+		  };
+
+		  return (
+			<ScrollView contentContainerStyle={styles.container}>
+			  <Text style={styles.title}>Crear Nueva Cuenta</Text>
+
+			  <TextInput
+				placeholder="Nombre Completo"
+				style={styles.input}
+				onChangeText={setName}
+				value={name}
+			  />
+
+			  <TextInput
+				placeholder="Correo Electrónico"
+				style={styles.input}
+				keyboardType="email-address"
+				autoCapitalize="none"
+				onChangeText={setEmail}
+				value={email}
+			  />
+
+			  <TextInput
+				placeholder="Puesto / Trabajo"
+				style={styles.input}
+				onChangeText={setJob}
+				value={job}
+			  />
+
+			  <TextInput
+				placeholder="Contraseña"
+				style={styles.input}
+				secureTextEntry
+				onChangeText={setPassword}
+				value={password}
+			  />
+
+			  <TouchableOpacity style={styles.button} onPress={handleRegister}>
+				<Text style={styles.buttonText}>Registrar Usuario</Text>
+			  </TouchableOpacity>
+
+			  <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+				<Text style={styles.linkText}>¿Ya tienes cuenta? Inicia sesión</Text>
+			  </TouchableOpacity>
+			</ScrollView>
+		  );
+		};
+
+		const styles = StyleSheet.create({
+		  container: { flexGrow: 1, padding: 25, justifyContent: 'center', backgroundColor: '#f5f5f5' },
+		  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 30, textAlign: 'center', color: '#333' },
+		  input: { backgroundColor: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, borderWidth: 1, borderColor: '#ddd' },
+		  button: { backgroundColor: '#4A90E2', padding: 18, borderRadius: 10, marginTop: 10 },
+		  buttonText: { color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: 16 },
+		  linkText: { color: '#4A90E2', textAlign: 'center', marginTop: 20, fontSize: 14 }
+		});
+
+		export default Register;
+
+	- Save changes
+
+	- Create <root_project>\src\views\Login.js and writes:
+
+		import React, { useState } from 'react';
+		import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+		import auth from '@react-native-firebase/auth';
+
+		const Login = ({ navigation }) => {
+		  const [email, setEmail] = useState('');
+		  const [password, setPassword] = useState('');
+
+		  const handleLogin = () => {
+			auth().signInWithEmailAndPassword(email, password)
+			  .then(() => console.log('Usuario autenticado'))
+			  .catch(error => alert(error.message));
+		  };
+
+		  return (
+			<View style={styles.container}>
+			  <Text style={styles.title}>Iniciar Sesión</Text>
+			  <TextInput placeholder="Email" onChangeText={setEmail} style={styles.input} />
+			  <TextInput placeholder="Contraseña" secureTextEntry onChangeText={setPassword} style={styles.input} />
+			  <Button title="Entrar" onPress={handleLogin} />
+			  <Button title="¿No tienes cuenta? Regístrate" onPress={() => navigation.navigate('Register')} />
+			</View>
+		  );
+		};
+
+		const styles = StyleSheet.create({
+		  container: { flex: 1, padding: 20, justifyContent: 'center' },
+		  input: { borderBottomWidth: 1, marginBottom: 15, padding: 5 },
+		  title: { fontSize: 24, marginBottom: 20, textAlign: 'center' }
+		});
+
+		export default Login;
+
+	- Save changes
+	
+	- Create <root_project>\src\views\Gallery.js and writes:
+	
+		import React, { useEffect, useState } from 'react';
+		import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, Button } from 'react-native';
+		import firestore from '@react-native-firebase/firestore';
+		import auth from '@react-native-firebase/auth';
+
+		const Gallery = ({ navigation }) => {
+		  const [photos, setPhotos] = useState([]);
+
+		  useEffect(() => {
+			// Escuchamos la base de datos
+			const subscriber = firestore()
+			  .collection('photos')
+			  .orderBy('createdAt', 'desc')
+			  .onSnapshot(querySnapshot => {
+				const list = [];
+				querySnapshot.forEach(doc => {
+				  list.push({ ...doc.data(), id: doc.id });
+				});
+				setPhotos(list);
+			  });
+			return () => subscriber();
+		  }, []);
+
+		  return (
+			<View style={styles.container}>
+			  {/* Botón para cerrar sesión (Paso 22 de tu guía) */}
+			  <Button title="Cerrar Sesión" onPress={() => auth().signOut()} color="red" />
+
+			  <FlatList
+				data={photos}
+				keyExtractor={item => item.id}
+				renderItem={({ item }) => (
+				  <View style={styles.card}>
+					<Image source={{ uri: item.url }} style={styles.image} />
+					<Text style={styles.info}>{item.user} - {item.date}</Text>
+					<Text style={styles.comment}>{item.comment}</Text>
+				  </View>
+				)}
+			  />
+
+			  <TouchableOpacity
+				style={styles.fab}
+				onPress={() => navigation.navigate('PhotoCapture')}
+			  >
+				<Text style={styles.fabIcon}>+</Text>
+			  </TouchableOpacity>
+			</View>
+		  );
+		};
+
+		const styles = StyleSheet.create({
+		  container: { flex: 1, backgroundColor: '#f0f0f0' },
+		  card: { backgroundColor: '#fff', margin: 10, borderRadius: 8, elevation: 3, overflow: 'hidden' },
+		  image: { width: '100%', height: 250 },
+		  info: { padding: 5, fontWeight: 'bold', fontSize: 12 },
+		  comment: { padding: 5, color: '#444' },
+		  fab: {
+			position: 'absolute', right: 20, bottom: 20,
+			backgroundColor: '#007AFF', width: 60, height: 60,
+			borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 5
+		  },
+		  fabIcon: { color: 'white', fontSize: 30, fontWeight: 'bold' }
+		});
+
+		export default Gallery;
+
+	
+	- Save changes
+	
+
+Step 28 - Changes the application
+
+	- Open <root_project>\App.tsx	
+	
+		- Delete all code and writes:
+		
+			import React, { useState, useEffect } from 'react';
+			import { NavigationContainer } from '@react-navigation/native';
+			import { createNativeStackNavigator } from '@react-navigation/native-stack';
+			import auth from '@react-native-firebase/auth';
+
+			import Login from './src/views/Login';
+			import Register from './src/views/Register';
+			import Gallery from './src/views/Gallery';
+			import CameraUpload from './src/components/collections/CameraUpload';
+
+			const Stack = createNativeStackNavigator();
+
+			const App = () => {
+			  const [initializing, setInitializing] = useState(true);
+			  const [user, setUser] = useState();
+
+			  // eslint-disable-next-line react-hooks/exhaustive-deps
+			  function onAuthStateChanged(user: any) {
+				setUser(user);
+				if (initializing) {
+				  setInitializing(false);
+				}
+			  }
+
+			  useEffect(() => {
+				const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+				return subscriber;
+			  }, [onAuthStateChanged]);
+
+			  if (initializing) return null;
+
+			  return (
+				<NavigationContainer>
+				  <Stack.Navigator screenOptions={{ headerShown: false }}>
+					{user ? (
+					  <>
+						<Stack.Screen name="Gallery" component={Gallery} options={{ title: 'Pasarela de Fotos' }}/>
+						<Stack.Screen name="PhotoCapture" component={CameraUpload} options={{ title: 'Subir nueva foto' }}/>
+					  </>
+					) : (
+					  <>
+						<Stack.Screen name="Login" component={Login} />
+						<Stack.Screen name="Register" component={Register} />
+					  </>
+					)}
+				  </Stack.Navigator>
+				</NavigationContainer>
+			  );
+			};
+
+			export default App;
+
+		
+		- Save changes
+		
+		
+Step 29 - Add Storage in Firebase console:
+
+	- In the Firebase console: Select Compilation drown drop-box
+		
+		- Add Storage Module:
+		
+			- Click [Update project] button 		(Spark -> Blaze)
+		
+				- Pay per use
+				
+				- Cloud billing accounts available:
+				
+					- Select the payment method
+					
+						- Budget amount in USD...: $15
+						
+						- Click [continue] button
+						
+					- Click [Link the Cloud....] button	
+					
+			- Set default bucket:
+			
+				- Location...: US-Central1
+				
+					- Click [Continue] button
+					
+				- Start on production mode and click [Create] button
+
+			- Changes the rules:
+				
+				allow read, write: if false; to allow read, write: if request.auth != null;
+				
+
+		- Update the Firestore rules:
+		
+			- Add rule:
+			
+				match /photos/{photoId} {      
+				  allow read: if request.auth != null;
+				  allow create: if request.auth != null && 
+											   request.resource.data.userId == request.auth.uid;
+						
+				  allow update, delete: if request.auth != null && 
+										   resource.data.userId == request.auth.uid;
+				}
+
+
+Step 30 - Execute the application (go back to Visual Code IDE)
+
+	- Open terminal window in Visual Code
+			
+		npx react-native run-android
+
+
+Step 25 - Be happy 4
+
+	Y U P Y		
+				
