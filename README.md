@@ -1,13 +1,8 @@
 # ITI-721 - Desarrollo de Aplicaciones para Dispositivos Móviles II
 
-**Universidad Técnica Nacional — Campus Pacífico (JRMP)**
-**Carrera:** Ingeniería en Tecnologías de Información
-**Período:** 1C-2026
-**Profesor:** Jorge Ruiz (york)
-
 ---
 
-## Contenido del repositorio
+## Repositorios
 
 | Carpeta | Tema |
 |---|---|
